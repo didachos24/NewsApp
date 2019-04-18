@@ -36,32 +36,47 @@ mongoose.connect("mongodb://localhost/newsDB", { useNewUrlParser: true});
 
 // Routes
 
-// Route for retrieving all News from website
-app.get("/scrape", function(req, res) {
+// Main route. Route for retrieving all News from website
+app.get("/", function(req, res) {
     // The request for news is via axios from Time Magazine website
     axios.get("http://www.time.com/").then(function(response) {
         var $ = cheerio.load(response.data);
         // Catch each element with "column-tout-metadata" class
-        $("column-tout-metadata").each(function(i, element) {
-            // Get references
-            var title = $(element).children("headline").children("a").text();
-            var summary = $(element).children("sumary").text();
-            var URL = $(element).children("headline").children("a").attr("href");
-
-            // Save refenreces
+        $("div.column-tout-metadata").each(function(i, element) {
+            // Get references and save refenreces
             var result = {};
 
-            result.title = title;
-            result.summary = summary;
-            result.URL = URL;
-        })
-    })
+            result.title = $(this).children("headline").children("a").text();
+            result.summary = $(this).children("sumary").text();
+            result.URL = $(this).children("headline").children("a").attr("href");
+
+            console.log(result.title);
+
+            // Using the result object crates an database
+            db.News.create(result)
+                .then(function(dbNewsScrappe) {
+                    // Console.log result
+                    console.log(dbNewsScrapped);
+                }).catch(function(err) {
+                    // Check error
+                    console.log(err);
+                });
+        });
+    });
+
+    // Send result
+    res.send("News scrapped");
 });
 
 // Route for saving a new news with user association
-app.post("/submit", function(req, res) {
-    db.News.create(req.body)
-        .then(function(dbNews) {
-            return db.User.find
-        })
-})
+// app.post("/submit", function(req, res) {
+//     db.News.create(req.body)
+//         .then(function(dbNews) {
+//             return db.User.find
+//         });
+// });
+
+// Start the server
+app.listen(PORT, function() {
+    console.log("App running on port "+PORT);
+});
