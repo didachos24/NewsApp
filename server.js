@@ -15,7 +15,7 @@ var app = express();
 // Morgan for logger requests
 app.use(logger("dev"));
 
-// Parse bory as  Json
+// Parse body as  Json
 app.use(express.urlencoded({ extended: true}));
 app.use(express.json());
 
@@ -23,58 +23,76 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // Connection with Mongo DB
-mongoose.connect("mongodb://localhost/newsDB", { useNewUrlParser: true});
+mongoose.connect("mongodb://localhost:27017/newsDB", { useNewUrlParser: true});
 
-// Connection starting
-// db.User.create({ name: "News Keeper"})
-//     .then(function(dbUser) {
-//         console.log(dbUser);
-//     })
-//     .catch(function(err) {
-//         console.log(err.message);
-//     });
 
 // Routes
 
 // Main route. Route for retrieving all News from website
-app.get("/", function(req, res) {
+app.get("/scrappe", function(req, res) {
     // The request for news is via axios from Time Magazine website
-    axios.get("http://www.time.com/").then(function(response) {
+    axios.get("http://www.semana.com").then(function(response) {
         var $ = cheerio.load(response.data);
+
         // Catch each element with "column-tout-metadata" class
-        $("div.column-tout-metadata").each(function(i, element) {
+        $("h2.article-h").each(function(i, element) {
             // Get references and save refenreces
             var result = {};
+            var rootURL = "http://www.semana.com";
 
-            result.title = $(this).children("headline").children("a").text();
-            result.summary = $(this).children("sumary").text();
-            result.URL = $(this).children("headline").children("a").attr("href");
-
-            console.log(result.title);
+            result.title = $(this).children("a").text().trim();
+            result.URL = rootURL + $(this).children("a").attr("href");
+            //Conditional for news without summary
+            if($(this).parents().next("p").text().trim() == "") {
+                result.summary = "---- There is not summary for this news  :(";
+            } else{
+                result.summary = $(this).parents().next("p").text().trim();
+            };
 
             // Using the result object crates an database
             db.News.create(result)
-                .then(function(dbNewsScrappe) {
+                .then(function(dbNews) {
                     // Console.log result
-                    console.log(dbNewsScrapped);
+                    console.log(dbNews);
                 }).catch(function(err) {
                     // Check error
                     console.log(err);
                 });
+            res.send("News scrapped");
         });
     });
-
-    // Send result
-    res.send("News scrapped");
 });
 
-// Route for saving a new news with user association
-// app.post("/submit", function(req, res) {
-//     db.News.create(req.body)
-//         .then(function(dbNews) {
-//             return db.User.find
-//         });
-// });
+app.get("/news", function(req, res) {
+    // Send result
+    db.News.find({})
+    .then(function(dbNews) {
+        res.json(dbNews);
+    }).catch(function(err) {
+        res.json(err);
+    });
+});
+
+app.get("/news/:id", function(req, res) {
+    db.News.findOne({ _id: req.params.id })
+    .populate("note")
+    .then(function(dbNews) {
+        res.json(dbNews);
+    }).catch(function(err) {
+        res.json(err);
+    });
+});
+
+app.post("/news/:id", function(req, res) {
+    db.Note.create(req.body)
+    .then(function(dbNote) {
+        return db.News.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
+    }).then(function(dbNews) {
+        res.json(dbNews);
+    }).catch(function(err) {
+        res.json(err);
+    });
+});
 
 // Start the server
 app.listen(PORT, function() {

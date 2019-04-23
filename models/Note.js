@@ -5,7 +5,7 @@ var Schema = mongoose.Schema;
 
 // Model to store notes for News. This model belongs to News model
 var NoteSchema = new Schema({
-    title: String,
+    user: String,
     body: String
 });
 
