@@ -10,11 +10,15 @@ $.getJSON("/news", function(data) {
         + data[i].summary + "<br /><a href='"+data[i].URL+"'>" + data[i].URL + 
         "</a></p><br/><button type='button' class='btn btn-danger' data-toggle='modal' data-target='#exampleModal' data-whatever='" + 
         data[i].title + "' data-id='"+ data[i]._id + "'>Create Note</button>"); 
+        if(data[i].note) {
+            $("#news").append("<p>"+data[i].note.user+": "+data[i]+"</p>");
+        };
     };
 }) ;
 
 $(document).on("click", ".btn-danger", function(event) {
     event.preventDefault();
+    
     thisTitle = $(this).attr("data-whatever");
     thisId = $(this).attr("data-id");
     $("#exampleModalLabel").text(thisTitle);
@@ -24,9 +28,6 @@ $(document).on("click", ".btn-danger", function(event) {
 $(document).on("click", "#savenote", function(event) {
     event.preventDefault();
 
-    var note = $("#note").val();
-    console.log(note);
-
     // Post the new note
     $.ajax({
         method: "POST",
@@ -35,10 +36,10 @@ $(document).on("click", "#savenote", function(event) {
             // User
             user: $("#user").val(),
             // Note
-            note: $("#note").val(),
+            note: $("#note").val()
         }
-    }).then(function(data) {
-        console.log(data);
+    }).then(function(postdata) {
+        console.log(postdata);
         $(".close").click();
     })
 });

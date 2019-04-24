@@ -80,7 +80,7 @@ app.get("/news", function(req, res) {
 
 app.get("/news/:id", function(req, res) {
     db.News.findOne({ _id: req.params.id })
-    .populate("note")
+    .populate("user", "note")
     .then(function(dbNews) {
         res.json(dbNews);
     }).catch(function(err) {
