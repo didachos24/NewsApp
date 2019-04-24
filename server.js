@@ -22,8 +22,13 @@ app.use(express.json());
 // Public as static folder
 app.use(express.static("public"));
 
+// If deployed, use the deployed database. Otherwise use the local mongoHeadlines database
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/newsDb";
+
+mongoose.connect(MONGODB_URI);
+
 // Connection with Mongo DB
-mongoose.connect("mongodb://localhost:27017/newsDB", { useNewUrlParser: true});
+// mongoose.connect("mongodb://localhost:27017/newsDB", { useNewUrlParser: true});
 
 
 // Routes
