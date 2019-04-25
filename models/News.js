@@ -18,10 +18,10 @@ var NewsSchema = new Schema({
         type: String,
         required: true
     },
-    note: {
+    note: [{
         type: Schema.Types.ObjectId,
         ref: "Note"
-    }
+    }]
 });
 
 // Create News model with mongoose's model method 

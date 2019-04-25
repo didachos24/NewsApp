@@ -49,7 +49,7 @@ app.get("/scrappe", function(req, res) {
             result.URL = rootURL + $(this).children("a").attr("href");
             //Conditional for news without summary
             if($(this).parents().next("p").text().trim() == "") {
-                result.summary = "---- There is not summary for this news  :(";
+                result.summary = "---- There is not summary for this news  :( ----";
             } else{
                 result.summary = $(this).parents().next("p").text().trim();
             };
@@ -63,7 +63,7 @@ app.get("/scrappe", function(req, res) {
                     // Check error
                     console.log(err);
                 });
-            res.send("News scrapped");
+            res.send("News scrapped <br> <br> <a href='/'><button>Go back to News</button></a>");
         });
     });
 });
@@ -71,6 +71,7 @@ app.get("/scrappe", function(req, res) {
 app.get("/news", function(req, res) {
     // Send result
     db.News.find({})
+    .populate("note")
     .then(function(dbNews) {
         res.json(dbNews);
     }).catch(function(err) {
@@ -80,7 +81,7 @@ app.get("/news", function(req, res) {
 
 app.get("/news/:id", function(req, res) {
     db.News.findOne({ _id: req.params.id })
-    .populate("user", "note")
+    .populate("note")
     .then(function(dbNews) {
         res.json(dbNews);
     }).catch(function(err) {
@@ -88,7 +89,7 @@ app.get("/news/:id", function(req, res) {
     });
 });
 
-app.post("/news/:id", function(req, res) {
+app.post("/news/:id", function(req, res) { 
     db.Note.create(req.body)
     .then(function(dbNote) {
         return db.News.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
